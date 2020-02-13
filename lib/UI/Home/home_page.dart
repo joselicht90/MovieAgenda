@@ -1,129 +1,84 @@
-import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:movie_agenda/BLoC/home_bloc.dart';
+import 'package:movie_agenda/BLoC/interface/bloc_provider.dart';
+import 'package:movie_agenda/DataLayer/models/UpcomingMoviesResult.dart';
+import 'package:movie_agenda/UI/Generics/context_button.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key key}) : super(key: key);
+  HomePage({Key key}) : super(key: key);
 
-  void _changeTheme(BuildContext context) {
-    DynamicTheme.of(context).setBrightness(
-        Theme.of(context).brightness == Brightness.dark
-            ? Brightness.light
-            : Brightness.dark);
-  }
+  final HomeBloc _bloc = HomeBloc();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      //appBar: AppBar(),
-      body: Stack(
-        children: <Widget>[
-          Center(
-            child: Container(
-              child: FlatButton(
-                onPressed: () => _changeTheme(context),
-                child: Text('Change Theme'),
-              ),
-            ),
-          ),
-          ContextButton()
-        ],
-      ),
-    );
-  }
-}
-
-class ContextButton extends StatefulWidget {
-  const ContextButton({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  _ContextButtonState createState() => _ContextButtonState();
-}
-
-class _ContextButtonState extends State<ContextButton> {
-  double _buttonSize = 50;
-  double _radius = 200;
-  bool _isOpen = false;
-  double _iconsOpacity = 0;
-  Alignment _homeAlignment = Alignment(1, 1);
-  Alignment _personAlignment = Alignment(1, 1);
-
-  void _onTap() {
-    setState(() {
-      if (_isOpen) {
-        _buttonSize = 150;
-        _homeAlignment = Alignment(-0.9, 1);
-        _personAlignment = Alignment(-0.7, 0.2);
-        _iconsOpacity = 1;
-      } else {
-        _buttonSize = 50;
-        _homeAlignment = Alignment(1, 1);
-        _personAlignment = Alignment(1, 1);
-        _iconsOpacity = 0;
-      }
-      _isOpen = !_isOpen;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomRight,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        height: _buttonSize,
-        width: _buttonSize,
-        decoration: BoxDecoration(
-          color: Theme.of(context).accentColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(_radius),
-          ),
-        ),
-        child: Stack(
-          children: <Widget>[
-            AnimatedOpacity(
-              duration: Duration(milliseconds: 300),
-              opacity: _iconsOpacity,
-              child: AnimatedContainer(
-                alignment: _homeAlignment,
-                duration: Duration(milliseconds: 300),
-                child: Container(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                  child: Icon(Icons.home),
-                ),
-              ),
-            ),
-            AnimatedOpacity(
-              duration: Duration(milliseconds: 300),
-              opacity: _iconsOpacity,
-              child: AnimatedContainer(
-                alignment: _personAlignment,
-                duration: Duration(milliseconds: 300),
-                child: Container(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                  child: Icon(Icons.person),
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _onTap(),
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: Container(
-                  //color: Theme.of(context).accentColor,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                  child: Icon(
-                    Icons.menu,
-                    size: 30,
+    _bloc.getUpcomingMoviesResult();
+    return BlocProvider(
+      bloc: _bloc,
+      child: Scaffold(
+        body: SafeArea(
+          child: Stack(
+            children: <Widget>[
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        height: 350,
+                        child: StreamBuilder<UpcomingMoviesResult>(
+                          stream: _bloc.streamUpcomingMoviesResult,
+                          builder: (context, snapshot) {
+                            UpcomingMoviesResult upcomingMoviesResult =
+                                snapshot.data;
+                            if (snapshot.hasData) {
+                              return ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
+                                itemCount: upcomingMoviesResult.results.length,
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(5),
+                                    margin: const EdgeInsets.all(10),
+                                    width: 200,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).canvasColor,
+                                      borderRadius: BorderRadius.circular(7),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          offset: Offset(-4, -3),
+                                          color: Color(0x25f9f6f7),
+                                          blurRadius: 5,
+                                        ),
+                                        BoxShadow(
+                                            offset: Offset(4, 3),
+                                            color: Color(0x30000000),
+                                            blurRadius: 5,
+                                            spreadRadius: 0.5),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(7),
+                                      child: _bloc.getMovieImagePoster(upcomingMoviesResult.results[index].posterPath),
+                                    ),
+                                    // child: Center(
+                                    //   child: Text(
+                                    //       '${upcomingMoviesResult.results[index].title}'),
+                                    // ),
+                                  );
+                                },
+                              );
+                            }
+                            return Container();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              ContextButton(),
+            ],
+          ),
         ),
       ),
     );

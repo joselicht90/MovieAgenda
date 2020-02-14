@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         iconTheme: IconThemeData(color: Colors.white),
         textTheme: GoogleFonts.josefinSansTextTheme(),
         canvasColor: brightness == Brightness.light
-            ? Color(0xFFdfdfdf)
+            ? Colors.grey.shade200
             : Color(0xFF313131),
         accentColor:
             brightness == Brightness.light ? Color(0xFFdf7861) : Color(0xFFec625f),

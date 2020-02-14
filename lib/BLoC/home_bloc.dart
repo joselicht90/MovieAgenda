@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:extended_image/extended_image.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:movie_agenda/BLoC/interface/bloc.dart';
 import 'package:movie_agenda/DataLayer/models/UpcomingMoviesResult.dart';
 import 'package:movie_agenda/DataLayer/repository/repository.dart';
@@ -21,9 +20,10 @@ class HomeBloc implements Bloc {
     _controllerUpcomingMoviesResult.sink.add(upcomingMoviesResult);
   }
 
-  ExtendedImage getMovieImagePoster(String path){
+  CachedNetworkImage getMovieImagePoster(String path){
     return Respository.getPoster(path);
   }
+
 
   @override
   void dispose() {

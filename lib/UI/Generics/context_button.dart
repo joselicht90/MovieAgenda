@@ -30,7 +30,7 @@ class _ContextButtonState extends State<ContextButton> {
 
   void _onTap() {
     setState(() {
-      if (_isOpen) {
+      if (!_isOpen) {
         _buttonSize = 150;
         _homeAlignment = Alignment(-0.9, 1);
         _personAlignment = Alignment(-0.7, 0.2);

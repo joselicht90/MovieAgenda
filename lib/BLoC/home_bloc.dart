@@ -21,7 +21,7 @@ class HomeBloc implements Bloc {
   }
 
   CachedNetworkImage getMovieImagePoster(String path){
-    return Respository.getPoster(path);
+    return Respository.getImageDetail(path);
   }
 
 

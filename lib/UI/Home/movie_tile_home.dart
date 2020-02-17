@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_agenda/BLoC/home_bloc.dart';
@@ -24,13 +23,15 @@ class MovieTileHome extends StatelessWidget {
       borderRadius: BorderRadius.circular(7),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) =>
-              Detail(imagePath: movie.posterPath, movieId: movie.id),
+          builder: (context) => Detail(posterImage: _poster, movieId: movie.id),
         ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(7),
-        child: _poster,
+        child: Hero(
+          child: _poster,
+          tag: movie.id.toString(),
+        ),
       ),
     );
   }

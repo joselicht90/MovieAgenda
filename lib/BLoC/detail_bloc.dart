@@ -1,33 +1,38 @@
 import 'dart:async';
-import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:movie_agenda/BLoC/interface/bloc.dart';
-import 'package:movie_agenda/DataLayer/models/UpcomingMoviesResult.dart';
+import 'package:movie_agenda/DataLayer/models/MovieCredits.dart';
+import 'package:movie_agenda/DataLayer/models/MovieDetail.dart';
 import 'package:movie_agenda/DataLayer/repository/repository.dart';
 
 //BLOC DE PRODUCTO
 class DetailBloc implements Bloc {
-  final _controllerMovieDetail = StreamController<UpcomingMoviesResult>();
+  final _controllerMovieDetail = StreamController<MovieDetail>();
+  final _controllerMovieCredits = StreamController<MovieCredits>();
 
-  final _controllerDynamicBackground = StreamController<ImageFilter>();
+  Stream<MovieDetail> get streamMovieDetail => _controllerMovieDetail.stream;
 
-  Stream<UpcomingMoviesResult> get streamMovieDetail =>
-      _controllerMovieDetail.stream;
-  Stream<ImageFilter> get streamDynamicBackground =>
-      _controllerDynamicBackground.stream;
+  Stream<MovieCredits> get streamMovieCredits => _controllerMovieCredits.stream;
 
-  CachedNetworkImage getMovieImagePoster(String path) {
-    return Respository.getImageDetail(path);
+  void getMovieDetail(int id) async {
+    Map<String, dynamic> response = await Respository.getDetails(id);
+    MovieDetail movieDetail = MovieDetail.fromJson(response);
+    _controllerMovieDetail.sink.add(movieDetail);
   }
 
-  void getImageFilter(double sigmaX, double sigmaY){
-    _controllerDynamicBackground.sink.add(ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY));
+  void getCredits(int id) async {
+    Map<String, dynamic> response = await Respository.getCredits(id);
+    MovieCredits movieDetail = MovieCredits.fromJson(response);
+    _controllerMovieCredits.sink.add(movieDetail);
+  }
+
+  CachedNetworkImage getPersonImage(String path){
+    return Respository.getPersonImage(path);
   }
 
   @override
   void dispose() {
     _controllerMovieDetail.close();
-    _controllerDynamicBackground.close();
+    _controllerMovieCredits.close();
   }
 }

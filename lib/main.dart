@@ -2,9 +2,9 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:movie_agenda/UI/Home/home_page.dart';
 
-import 'package:movie_agenda/UI/notes/notes_home.dart';
+import 'UI/Notes/notes_home.dart';
+
 
 void main() => runApp(MyApp());
 

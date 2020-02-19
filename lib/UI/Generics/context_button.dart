@@ -1,7 +1,6 @@
 import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_agenda/UI/Generics/menu_icon.dart';
-import 'package:movie_agenda/UI/Notes/notes.dart';
 
 class ContextButton extends StatefulWidget {
   const ContextButton({
@@ -49,7 +48,7 @@ class _ContextButtonState extends State<ContextButton> {
   }
 
   navigateToNotes(BuildContext context){
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotesHome()));
+    //Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotesHome()));
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_agenda/BLoC/interface/bloc_provider.dart';
 import 'package:movie_agenda/BLoC/new_doc_bloc.dart';
+import 'package:movie_agenda/UI/notes/text_element.dart';
 import 'package:reorderables/reorderables.dart';
 
 class NotesHome extends StatefulWidget {
@@ -18,36 +19,41 @@ class _NotesHomeState extends State<NotesHome> {
   bool _isDragging = false;
   Color floatColor = Color(0xFFec625f);
   TextElement _currentElement;
+  int _idGenerator = 0;
 
   NewDocumentBloc _bloc = NewDocumentBloc();
 
   @override
   void initState() {
     super.initState();
-    _bloc.getStyles();
+    _bloc.getElements();
   }
 
   _setInputFocus(int id) {
-    setState(() {
-      _currentElement = _tiles.singleWhere((element) => element.id == id);
-    });
+    _bloc.setInputFocus(id);
   }
 
   _unsetInputFocus() {
     setState(() {
-      _currentElement = null;
-      FocusScope.of(context).requestFocus(new FocusNode());
+      _bloc.unsetInputFocus();
+      FocusScopeNode currentFocus = FocusScope.of(context);
+      if (!currentFocus.hasPrimaryFocus) {
+        currentFocus.unfocus();
+      }
     });
   }
 
-  _changeStyle() {}
+  _changeStyle() {
+    TextStyle s = TextStyle(
+        color: Colors.white, fontWeight: FontWeight.bold, fontSize: 50);
+    _bloc.updateStyle(s);
+  }
 
   @override
   Widget build(BuildContext context) {
     void _onReorder(int oldIndex, int newIndex) {
       setState(() {
-        TextElement tile = _tiles.removeAt(oldIndex);
-        _tiles.insert(newIndex, tile);
+        _bloc.reorder(oldIndex, newIndex);
         _isDragging = false;
         floatColor = Color(0xFFec625f);
       });
@@ -70,65 +76,78 @@ class _NotesHomeState extends State<NotesHome> {
                   ),
                 ],
               ),
-              Expanded(
-                child: Container(
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.width,
-                  color: _dragColor,
-                  child: DragTarget<TextElement>(
-                    builder: (context, candidateData, rejectedData) {
-                      return ReorderableWrap(
-                        onReorderStarted: (_) {
-                          _isDragging = true;
-                        },
-                        spacing: 8.0,
-                        runSpacing: 4.0,
-                        needsLongPressDraggable: false,
-                        padding: const EdgeInsets.all(8),
-                        children: _tiles,
-                        onReorder: _onReorder,
-                        onNoReorder: (int index) {
-                          _isDragging = false;
-                          //floatColor = Color(0xFFec625f);
-                        },
+              StreamBuilder<Object>(
+                  stream: _bloc.streamElements,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      List<TextElement> elements = snapshot.data;
+                      return Expanded(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          color: _dragColor,
+                          child: DragTarget<TextElement>(
+                            builder: (context, candidateData, rejectedData) {
+                              return ReorderableWrap(
+                                onReorderStarted: (_) {
+                                  setState(() {
+                                    _isDragging = true;
+                                  });
+                                },
+                                spacing: 8.0,
+                                runSpacing: 4.0,
+                                needsLongPressDraggable: false,
+                                padding: const EdgeInsets.all(8),
+                                children: elements,
+                                onReorder: _onReorder,
+                                onNoReorder: (int index) {
+                                  _isDragging = false;
+                                  //floatColor = Color(0xFFec625f);
+                                },
+                              );
+                            },
+                            onWillAccept: (data) {
+                              setState(() {
+                                _dragColor = Colors.white.withOpacity(0.3);
+                              });
+                              return true;
+                            },
+                            onLeave: (data) {
+                              setState(() {
+                                _dragColor = Colors.transparent;
+                              });
+                            },
+                            onAccept: (data) {
+                              setState(() {
+                                _idGenerator++;
+                              });
+                              _bloc.addElement(data);
+                              _dragColor = Colors.transparent;
+                            },
+                          ),
+                        ),
                       );
-                    },
-                    onWillAccept: (data) {
-                      setState(() {
-                        _dragColor = Colors.white.withOpacity(0.3);
-                      });
-                      return true;
-                    },
-                    onLeave: (data) {
-                      setState(() {
-                        _dragColor = Colors.transparent;
-                      });
-                    },
-                    onAccept: (data) {
-                      _bloc.addController(TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30));
-                      setState(() {
-                        TextElement t = data;
-                        _currentElement = t;
-                        _tiles.add(data);
-                        _dragColor = Colors.transparent;
-                      });
-                    },
-                  ),
-                ),
-              ),
+                    }
+                    return Container();
+                  }),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  AnimatedSwitcher(
-                    duration: Duration(milliseconds: 300),
-                    child: !_isDragging && _currentElement != null
-                        ? FloatingActionButton.extended(
-                            onPressed: () => _changeStyle(),
-                            label: Text('Tools'),
-                            icon: Icon(Icons.settings),
-                          )
-                        : Container(),
-                  ),
+                  FloatingActionButton.extended(
+                    onPressed: () => _changeStyle(),
+                    label: Text('Tools'),
+                    icon: Icon(Icons.settings),
+                  )
+                  // AnimatedSwitcher(
+                  //   duration: Duration(milliseconds: 300),
+                  //   child: !_isDragging && _bloc.currentElement != null
+                  //       ? FloatingActionButton.extended(
+                  //           onPressed: () => _changeStyle(),
+                  //           label: Text('Tools'),
+                  //           icon: Icon(Icons.settings),
+                  //         )
+                  //       : Container(),
+                  // ),
                 ],
               ),
               AnimatedSwitcher(
@@ -157,7 +176,7 @@ class _NotesHomeState extends State<NotesHome> {
                           setState(() {
                             _isDragging = false;
                             floatColor = Color(0xFFec625f);
-                            _tiles.removeAt(data);
+                            _bloc.remove(data);
                           });
                         },
                       )
@@ -182,66 +201,58 @@ class _NotesHomeState extends State<NotesHome> {
                 color: Colors.white.withOpacity(0.5),
                 size: 50,
               ),
+              onDragStarted: () {
+                FocusScopeNode currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
               data: TextElement(
                 bloc: _bloc,
+                hint: 'Title',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30),
                 unsetFocus: _unsetInputFocus,
                 setFocus: _setInputFocus,
-                id: _tiles.length,
+                id: _idGenerator,
                 key: Key('${_tiles.length}-title'),
+              ),
+            ),
+            Draggable<TextElement>(
+              child: Icon(
+                Icons.text_format,
+                color: Colors.white,
+                size: 50,
+              ),
+              feedback: Icon(
+                Icons.text_format,
+                color: Colors.white.withOpacity(0.5),
+                size: 50,
+              ),
+              onDragStarted: () {
+                FocusScopeNode currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
+              data: TextElement(
+                bloc: _bloc,
+                hint: 'Paragraph',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17),
+                unsetFocus: _unsetInputFocus,
+                setFocus: _setInputFocus,
+                id: _idGenerator,
+                key: Key('${_idGenerator}-text'),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class TextElement extends StatefulWidget {
-  final NewDocumentBloc bloc;
-  final int id;
-  final TextEditingController controller = TextEditingController();
-  final Function(int) setFocus;
-  final Function unsetFocus;
-  TextElement(
-      {@required this.bloc,
-      @required this.id,
-      @required this.setFocus,
-      @required this.unsetFocus,
-      Key key})
-      : super(key: key);
-  @override
-  _TextElementState createState() => _TextElementState();
-}
-
-class _TextElementState extends State<TextElement> {
-  TextStyle _default =
-      TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30);
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<Object>(
-      stream: widget.bloc.getStream(widget.id),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          TextStyle style = snapshot.data;
-          return TextField(
-            onEditingComplete: () {
-              widget.unsetFocus();
-            },
-            onTap: () {
-              widget.setFocus(widget.id);
-            },
-            autofocus: true,
-            enableInteractiveSelection: true,
-            decoration: InputDecoration(border: InputBorder.none),
-            controller: widget.controller,
-            style: style ?? _default,
-            cursorColor: Colors.green,
-          );
-        }
-        return Container();
-      },
     );
   }
 }

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:movie_agenda/UI/Home/home_page.dart';
-import 'package:movie_agenda/UI/Notes/notes.dart';
+
+import 'package:movie_agenda/UI/notes/notes_home.dart';
 
 void main() => runApp(MyApp());
 

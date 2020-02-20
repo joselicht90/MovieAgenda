@@ -4,7 +4,7 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_agenda/BLoC/interface/bloc_provider.dart';
 import 'package:movie_agenda/BLoC/new_doc_bloc.dart';
-import 'package:movie_agenda/UI/notes/text_element.dart';
+import 'package:movie_agenda/UI/Notes/text_element.dart';
 import 'package:reorderables/reorderables.dart';
 
 class NotesHome extends StatefulWidget {
@@ -13,12 +13,11 @@ class NotesHome extends StatefulWidget {
 }
 
 class _NotesHomeState extends State<NotesHome> {
-  List<TextElement> _tiles = [];
-  List<TextElementController> _controllers = [];
+  List<dynamic> _tiles = [];
   Color _dragColor = Colors.transparent;
   bool _isDragging = false;
   Color floatColor = Color(0xFFec625f);
-  TextElement _currentElement;
+  dynamic _currentElement;
   int _idGenerator = 0;
 
   NewDocumentBloc _bloc = NewDocumentBloc();
@@ -29,8 +28,8 @@ class _NotesHomeState extends State<NotesHome> {
     _bloc.getElements();
   }
 
-  _setInputFocus(int id) {
-    _bloc.setInputFocus(id);
+  _setInputFocus(dynamic element) {
+    _bloc.setInputFocus(element);
   }
 
   _unsetInputFocus() {
@@ -76,60 +75,66 @@ class _NotesHomeState extends State<NotesHome> {
                   ),
                 ],
               ),
-              StreamBuilder<Object>(
-                  stream: _bloc.streamElements,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      List<TextElement> elements = snapshot.data;
-                      return Expanded(
-                        child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          color: _dragColor,
-                          child: DragTarget<TextElement>(
-                            builder: (context, candidateData, rejectedData) {
-                              return ReorderableWrap(
-                                onReorderStarted: (_) {
-                                  setState(() {
-                                    _isDragging = true;
-                                  });
-                                },
-                                spacing: 8.0,
-                                runSpacing: 4.0,
-                                needsLongPressDraggable: false,
-                                padding: const EdgeInsets.all(8),
-                                children: elements,
-                                onReorder: _onReorder,
-                                onNoReorder: (int index) {
-                                  _isDragging = false;
-                                  //floatColor = Color(0xFFec625f);
-                                },
-                              );
-                            },
-                            onWillAccept: (data) {
-                              setState(() {
-                                _dragColor = Colors.white.withOpacity(0.3);
-                              });
-                              return true;
-                            },
-                            onLeave: (data) {
-                              setState(() {
-                                _dragColor = Colors.transparent;
-                              });
-                            },
-                            onAccept: (data) {
-                              setState(() {
-                                _idGenerator++;
-                              });
-                              _bloc.addElement(data);
-                              _dragColor = Colors.transparent;
-                            },
-                          ),
-                        ),
-                      );
-                    }
-                    return Container();
-                  }),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  color: _dragColor,
+                  child: StreamBuilder<Object>(
+                      stream: _bloc.streamElements,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          List<dynamic> e = snapshot.data;
+                          List<Widget> elements = e.map<Widget>((e) => e).toList();
+                          return Container(
+                            child: DragTarget<dynamic>(
+                              builder: (context, candidateData, rejectedData) {
+                                return SingleChildScrollView(
+                                  child: ReorderableWrap(
+                                    onReorderStarted: (_) {
+                                      setState(() {
+                                        _isDragging = true;
+                                      });
+                                    },
+                                    spacing: 8.0,
+                                    runSpacing: 4.0,
+                                    needsLongPressDraggable: false,
+                                    padding: const EdgeInsets.all(8),
+                                    children: elements,
+                                    onReorder: _onReorder,
+                                    onNoReorder: (int index) {
+                                      setState(() {
+                                        _isDragging = false;
+                                      });
+
+                                      //floatColor = Color(0xFFec625f);
+                                    },
+                                  ),
+                                );
+                              },
+                              onWillAccept: (data) {
+                                setState(() {
+                                  _dragColor = Colors.white.withOpacity(0.3);
+                                });
+                                return true;
+                              },
+                              onLeave: (data) {
+                                setState(() {
+                                  _dragColor = Colors.transparent;
+                                });
+                              },
+                              onAccept: (data) {
+                                _bloc.addElement(data);
+                                setState(() {
+                                  _dragColor = Colors.transparent;
+                                });
+                              },
+                            ),
+                          );
+                        }
+                        return Container();
+                      }),
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
@@ -190,7 +195,7 @@ class _NotesHomeState extends State<NotesHome> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           children: <Widget>[
-            Draggable<TextElement>(
+            Draggable<dynamic>(
               child: Icon(
                 Icons.text_fields,
                 color: Colors.white,
@@ -207,7 +212,8 @@ class _NotesHomeState extends State<NotesHome> {
                   currentFocus.unfocus();
                 }
               },
-              data: TextElement(
+              data: TitleElement(
+                key: Key('title'),
                 bloc: _bloc,
                 hint: 'Title',
                 style: TextStyle(
@@ -216,11 +222,10 @@ class _NotesHomeState extends State<NotesHome> {
                     fontSize: 30),
                 unsetFocus: _unsetInputFocus,
                 setFocus: _setInputFocus,
-                id: _idGenerator,
-                key: Key('${_tiles.length}-title'),
+                id: _bloc.getId(),
               ),
             ),
-            Draggable<TextElement>(
+            Draggable<dynamic>(
               child: Icon(
                 Icons.text_format,
                 color: Colors.white,
@@ -237,7 +242,8 @@ class _NotesHomeState extends State<NotesHome> {
                   currentFocus.unfocus();
                 }
               },
-              data: TextElement(
+              data: ParagraphElement(
+                key: Key('paragraph'),
                 bloc: _bloc,
                 hint: 'Paragraph',
                 style: TextStyle(
@@ -246,20 +252,31 @@ class _NotesHomeState extends State<NotesHome> {
                     fontSize: 17),
                 unsetFocus: _unsetInputFocus,
                 setFocus: _setInputFocus,
-                id: _idGenerator,
-                key: Key('${_idGenerator}-text'),
+                id: _bloc.getId(),
               ),
+            ),
+            Draggable<dynamic>(
+              child: Icon(
+                Icons.text_format,
+                color: Colors.white,
+                size: 50,
+              ),
+              feedback: Icon(
+                Icons.text_format,
+                color: Colors.white.withOpacity(0.5),
+                size: 50,
+              ),
+              onDragStarted: () {
+                FocusScopeNode currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
+              data: DragTargetRow(id: _bloc.getId(),bloc: _bloc,key: Key('row'),),
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class TextElementController {
-  String id;
-  TextEditingController controller;
-
-  TextElementController({@required this.id, @required this.controller});
 }

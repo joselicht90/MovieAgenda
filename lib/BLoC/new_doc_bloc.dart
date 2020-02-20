@@ -1,41 +1,47 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:movie_agenda/BLoC/interface/bloc.dart';
-import 'package:movie_agenda/UI/notes/text_element.dart';
+import 'package:movie_agenda/UI/Notes/text_element.dart';
 
 //BLOC DE PRODUCTO
 class NewDocumentBloc implements Bloc {
   List<TextStyle> _styles = List<TextStyle>();
+  int _indexGenerator = -1;
 
-  List<TextElement> elements = List<TextElement>();
+  List<dynamic> elements = List<dynamic>();
 
-  TextElement currentElement;
+  dynamic currentElement;
 
-  final _controllerDocumento = StreamController<List<TextElement>>();
+  final _controllerDocumento = StreamController<List<dynamic>>();
 
   List<StreamController<TextStyle>> _controllers =
       List<StreamController<TextStyle>>();
 
   List<Stream<TextStyle>> streams = List<Stream<TextStyle>>();
 
-  Stream<List<TextElement>> get streamElements => _controllerDocumento.stream;
+  Stream<List<dynamic>> get streamElements => _controllerDocumento.stream;
 
   Stream<TextStyle> getStream(int index) {
     return _controllers[index].stream;
+  }
+
+  int getId() {
+    _indexGenerator++;
+    return _indexGenerator;
   }
 
   void addStyle(TextStyle style) {
     _styles.add(style);
   }
 
-  void addElement(TextElement element) {
+  void addElement(dynamic element) {
     elements.add(element);
     currentElement = elements.last;
     _controllerDocumento.sink.add(elements);
   }
 
   void reorder(int oldIndex, int newIndex) {
-    TextElement tile = elements.removeAt(oldIndex);
+    dynamic tile = elements.removeAt(oldIndex);
     elements.insert(newIndex, tile);
     _controllerDocumento.sink.add(elements);
   }
@@ -48,15 +54,25 @@ class NewDocumentBloc implements Bloc {
 
   void updateStyle(TextStyle newStyle) {
     int i = elements.indexOf(currentElement);
-    elements.removeAt(i);
-    currentElement.style = newStyle;
-    elements.insert(i, currentElement);
-    currentElement.counter.value++;
+    if (i > -1 && currentElement.children == null) {
+      elements.removeAt(i);
+      currentElement.setStyle(newStyle);
+      elements.insert(i, currentElement);
+      currentElement.counter.value++;
+    }
+    else{
+      List<dynamic> e = elements.singleWhere((element) => element.children != null && element.children.any((x) => x.child.id == currentElement.id)).children;
+      int i = e.indexWhere((x)=> x.child.id == currentElement.id);
+      e.removeWhere((x) => x.child.id == currentElement.id);
+      currentElement.setStyle(newStyle);
+      e.insert(i, Expanded(child: currentElement,));
+      currentElement.counter.value++;
+    }
     _controllerDocumento.sink.add(elements);
   }
 
-  void remove(int id){
-    elements.removeWhere((element) => element.id == id);
+  void remove(int index) {
+    elements.removeAt(index);
     _controllerDocumento.sink.add(elements);
   }
 
@@ -70,14 +86,14 @@ class NewDocumentBloc implements Bloc {
     }
   }
 
-  setInputFocus(int id) {
-      currentElement = elements.singleWhere((element) => element.id == id);
-      _controllerDocumento.sink.add(elements);
+  setInputFocus(dynamic element) {
+    currentElement = element;
+    _controllerDocumento.sink.add(elements);
   }
 
   unsetInputFocus() {
-      currentElement = null;
-      _controllerDocumento.sink.add(elements);
+    currentElement = null;
+    _controllerDocumento.sink.add(elements);
   }
 
   @override
@@ -86,5 +102,6 @@ class NewDocumentBloc implements Bloc {
       sc.close();
     }
     _controllerDocumento.close();
+    _indexGenerator = -1;
   }
 }

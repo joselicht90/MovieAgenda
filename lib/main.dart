@@ -2,7 +2,7 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:movie_agenda/UI/notes/notes_home.dart';
+import 'package:movie_agenda/UI/Notes/notes_home.dart';
 
 
 
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DynamicTheme(
-      defaultBrightness: Brightness.light,
+      defaultBrightness: Brightness.dark,
       data: (brightness) => ThemeData(
         brightness: brightness,
         iconTheme: IconThemeData(color: Colors.white),

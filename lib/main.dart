@@ -2,7 +2,7 @@ import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:movie_agenda/UI/Notes/notes_home.dart';
+import 'package:movie_agenda/UI/NewNote/new_note.dart';
 
 
 
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           theme: theme,
-          home: NotesHome(),
+          home: NewNote(),
         );
       },
     );

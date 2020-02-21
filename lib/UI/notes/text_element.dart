@@ -1,25 +1,18 @@
 import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:movie_agenda/BLoC/new_doc_bloc.dart';
+import 'package:movie_agenda/BLoC/new_note_bloc.dart';
 import 'package:reorderables/reorderables.dart';
 
 abstract class DocElement extends StatelessWidget {
   int id;
   DocElement({@required this.id, Key key}) : super(key: key);
 
-  // @override
-  // _DocElementState createState() => _DocElementState();
 }
 
-// class _DocElementState extends State<DocElement> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-// }
+
 
 abstract class TextElement extends DocElement {
-  NewDocumentBloc bloc;
+  NewNoteBloc bloc;
   int id;
   String hint;
   TextEditingController controller = TextEditingController();
@@ -46,7 +39,7 @@ abstract class TextElement extends DocElement {
 class ParagraphElement extends TextElement {
   ValueNotifier<int> counter = ValueNotifier<int>(0);
   ParagraphElement(
-      {@required NewDocumentBloc bloc,
+      {@required NewNoteBloc bloc,
       @required int id,
       @required TextStyle style,
       @required String hint,
@@ -69,13 +62,15 @@ class ParagraphElement extends TextElement {
       builder: (context, value, child) {
         return Container(
           color: Colors.transparent,
-          width: MediaQuery.of(context).size.width * 0.4,
           child: TextField(
             onEditingComplete: () {
               unsetFocus();
             },
             onTap: () {
               setFocus(this);
+            },
+            onSubmitted: (p){
+              print('yolo');
             },
             //textInputAction: TextInputAction.done,
             keyboardAppearance: DynamicTheme.of(context).brightness,
@@ -100,7 +95,7 @@ class ParagraphElement extends TextElement {
 class TitleElement extends TextElement {
   ValueNotifier<int> counter = ValueNotifier<int>(0);
   TitleElement(
-      {@required NewDocumentBloc bloc,
+      {@required NewNoteBloc bloc,
       @required int id,
       @required TextStyle style,
       @required String hint,
@@ -146,7 +141,7 @@ class TitleElement extends TextElement {
 
 class DragTargetRow extends StatelessWidget {
   int id;
-  NewDocumentBloc bloc;
+  NewNoteBloc bloc;
   List<dynamic> children = [];
   ValueNotifier<int> counter = ValueNotifier<int>(0);
   Color _dragColor = Colors.transparent;

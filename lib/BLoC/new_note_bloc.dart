@@ -4,7 +4,7 @@ import 'package:movie_agenda/BLoC/interface/bloc.dart';
 import 'package:movie_agenda/UI/Notes/text_element.dart';
 
 //BLOC DE PRODUCTO
-class NewDocumentBloc implements Bloc {
+class NewNoteBloc implements Bloc {
   List<TextStyle> _styles = List<TextStyle>();
   int _indexGenerator = -1;
 
